@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/7166/7166938.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trình Tối Ưu Cắt Ván</title>
+    <title data-i18n="title">Trình Tối Ưu Cắt Ván</title>
     <style>
         :root {
             --primary-color: #184D5A;
@@ -238,14 +238,15 @@
         }
 
         .tab-button {
-            background: var(--bg-color);
+            background: #d3eafa;
+            color: black;
             border: 1px solid var(--border-color);
             border-bottom: none;
             border-radius: 4px 4px 0 0;
             padding: 0.4rem 0.6rem;
             margin-right: 0.25rem;
             cursor: pointer;
-            font-weight: 500;
+            font-weight: 600;
             font-size: 0.85rem;
             transition: background-color: 0.2s;
         }
@@ -322,8 +323,63 @@
             min-width: 80px;
         }
 
+        .language-switcher {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+        }
+
+        .language-button {
+            background: var(--primary-color);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s;
+        }
+
+        .language-button:hover {
+            background: var(--secondary-color);
+        }
+
+        .language-menu {
+            display: none;
+            position: absolute;
+            top: 45px;
+            right: 0;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            min-width: 100px;
+        }
+
+        .language-menu.active {
+            display: block;
+        }
+
+        .language-menu button {
+            display: block;
+            width: 100%;
+            padding: 0.5rem;
+            border: none;
+            background: none;
+            text-align: left;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .language-menu button:hover {
+            background: var(--bg-color);
+        }
+
         @media print {
-            .controls {
+            .controls, .language-switcher {
                 display: none;
             }
 
@@ -352,34 +408,51 @@
     </style>
 </head>
 <body>
-    <h1>Trình Tối Ưu Cắt Ván</h1>
+    <div class="language-switcher">
+        <button class="language-button" title="Change Language">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M2 12h20"/>
+                <path d="M12 2v20"/>
+                <path d="M6 6l12 12"/>
+                <path d="M6 18l12-12"/>
+            </svg>
+        </button>
+        <div class="language-menu">
+            <button style="color:#333;" data-lang="vi">Tiếng Việt</button>
+            <button style="color:#333;" data-lang="en">English</button>
+            <button style="color:#333;" data-lang="ko">한국어</button>
+        </div>
+    </div>
+
+    <h1 data-i18n="title">Trình Tối Ưu Cắt Ván</h1>
     
     <div class="container">
         <div class="controls">
             <!-- Cấu hình -->
             <div class="card">
                 <div class="accordion-header" data-target="config-content">
-                    <span>Cấu hình</span>
+                    <span data-i18n="config">Cấu hình</span>
                     <span class="toggle-icon">▼</span>
                 </div>
                 <div class="accordion-content active" id="config-content">
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="sheet-width">Chiều rộng (m):</label>
+                            <label for="sheet-width" data-i18n="sheet_width">Chiều rộng (m):</label>
                             <input type="number" id="sheet-width" step="0.01" value="1.22">
                         </div>
                         <div class="form-group">
-                            <label for="sheet-height">Chiều dài (m):</label>
+                            <label for="sheet-height" data-i18n="sheet_height">Chiều dài (m):</label>
                             <input type="number" id="sheet-height" step="0.01" value="2.44">
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="cut-width">Độ rộng cắt (mm):</label>
+                            <label for="cut-width" data-i18n="cut_width">Độ rộng cắt (mm):</label>
                             <input type="number" id="cut-width" value="3">
                         </div>
                         <div class="form-group">
-                            <label for="algorithm">Thuật toán:</label>
+                            <label for="algorithm" data-i18n="algorithm">Thuật toán:</label>
                             <select id="algorithm">
                                 <option value="maxrects">MaxRects</option>
                                 <option value="guillotine">Guillotine</option>
@@ -392,48 +465,48 @@
             <!-- Thêm mảnh ván -->
             <div class="card">
                 <div class="accordion-header" data-target="add-piece-content">
-                    <span>Thêm mảnh ván cần cắt</span>
+                    <span data-i18n="add_piece">Thêm mảnh ván cần cắt</span>
                     <span class="toggle-icon">▼</span>
                 </div>
                 <div class="accordion-content active" id="add-piece-content">
                     <div class="alert" id="error-message"></div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="piece-width">Chiều rộng (m):</label>
+                            <label for="piece-width" data-i18n="piece_width">Chiều rộng (m):</label>
                             <input type="number" id="piece-width" step="0.01" value="0.5">
                         </div>
                         <div class="form-group">
-                            <label for="piece-height">Chiều dài (m):</label>
+                            <label for="piece-height" data-i18n="piece_height">Chiều dài (m):</label>
                             <input type="number" id="piece-height" step="0.01" value="0.5">
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="piece-quantity">Số lượng:</label>
+                            <label for="piece-quantity" data-i18n="quantity">Số lượng:</label>
                             <input type="number" id="piece-quantity" value="1" min="1">
                         </div>
                         <div class="form-group">
-                            <label for="piece-name">Tên (tùy chọn):</label>
-                            <input type="text" id="piece-name" placeholder="VD: Mặt bàn">
+                            <label for="piece-name" data-i18n="piece_name">Tên (tùy chọn):</label>
+                            <input type="text" id="piece-name" placeholder="VD: Mặt bàn" data-i18n-placeholder="piece_name_placeholder">
                         </div>
                     </div>
-                    <button id="add-piece"><span class="button-icon">+</span> Thêm mảnh ván</button>
+                    <button id="add-piece"><span class="button-icon">+</span> <span data-i18n="add_piece_button">Thêm mảnh ván</span></button>
                 </div>
             </div>
 
             <!-- Danh sách mảnh ván -->
             <div class="card">
-                <div class="accordion-header" data-target="piece-list-content">
-                    <span>Danh sách mảnh ván (<span id="piece-count">0</span>)</span>
+                <div class="accordion-header" data-target="paint-piece-list-content">
+                    <span data-i18n="piece_list">Danh sách mảnh ván (<span id="piece-count">0</span>)</span>
                     <span class="toggle-icon">▼</span>
                 </div>
                 <div class="accordion-content active" id="piece-list-content">
                     <div class="piece-list" id="piece-list">
-                        <p>Chưa có mảnh ván nào</p>
+                        <p data-i18n="no_pieces">Chưa có mảnh ván nào</p>
                     </div>
                     <div class="action-buttons">
-                        <button id="calculate"><span class="button-icon">✓</span> Tính toán</button>
-                        <button id="clear-pieces"><span class="button-icon">×</span> Xóa tất cả</button>
+                        <button id="calculate"><span class="button-icon">✓</span> <span data-i18n="calculate">Tính toán</span></button>
+                        <button id="clear-pieces"><span class="button-icon">×</span> <span data-i18n="clear_all">Xóa tất cả</span></button>
                     </div>
                 </div>
             </div>
@@ -448,7 +521,7 @@
             <!-- Layout cắt ván -->
             <div class="card">
                 <div class="accordion-header" data-target="layout-content">
-                    <span>Layout cắt ván</span>
+                    <span data-i18n="layout">Layout cắt ván</span>
                     <span class="toggle-icon">▼</span>
                 </div>
                 <div class="accordion-content active" id="layout-content">
@@ -462,9 +535,9 @@
                         <!-- Legend will be added here -->
                     </div>
                     <div class="export-buttons">
-                        <button id="print-layout"><span class="button-icon">🖨️</span> In</button>
+                        <button id="print-layout"><span class="button-icon">🖨️</span> <span data-i18n="print">In</span></button>
                         <button id="export-pdf"><span class="button-icon">📄</span> PDF</button>
-                        <button id="zoom-fit"><span class="button-icon">🔍</span> Zoom</button>
+                        <button id="zoom-fit"><span class="button-icon">🔍</span> <span data-i18n="zoom">Zoom</span></button>
                     </div>
                 </div>
             </div>
@@ -473,6 +546,127 @@
 
     <script src="jspdf.umd.min.js"></script>
     <script>
+        // Language translations
+        const translations = {
+            vi: {
+                title: "Trình Tối Ưu Cắt Ván",
+                config: "Cấu hình",
+                sheet_width: "Chiều rộng (m):",
+                sheet_height: "Chiều dài (m):",
+                cut_width: "Độ rộng cắt (mm):",
+                algorithm: "Thuật toán:",
+                add_piece: "Thêm mảnh ván cần cắt",
+                piece_width: "Chiều rộng (m):",
+                piece_height: "Chiều dài (m):",
+                quantity: "Số lượng:",
+                piece_name: "Tên (tùy chọn):",
+                piece_name_placeholder: "VD: Mặt bàn",
+                add_piece_button: "Thêm mảnh ván",
+                piece_list: "Danh sách mảnh ván",
+                no_pieces: "Chưa có mảnh ván nào",
+                calculate: "Tính toán",
+                clear_all: "Xóa tất cả",
+                layout: "Layout cắt ván",
+                print: "In",
+                zoom: "Zoom",
+                error_invalid_piece: "Kích thước mảnh ván không hợp lệ",
+                error_invalid_quantity: "Số lượng không hợp lệ",
+                error_piece_too_large: "Kích thước mảnh ván lớn hơn tấm ván gốc",
+                error_no_pieces: "Vui lòng thêm ít nhất một mảnh ván cần cắt",
+                error_invalid_sheet: "Kích thước tấm ván không hợp lệ",
+                stats_sheets: "Số tấm ván",
+                stats_used_area: "Diện tích sử dụng",
+                stats_waste_area: "Diện tích thừa",
+                stats_efficiency: "Hiệu suất",
+                sheet_label: "Tấm"
+            },
+            en: {
+                title: "Panel Cutting Optimizer",
+                config: "Configuration",
+                sheet_width: "Width (m):",
+                sheet_height: "Length (m):",
+                cut_width: "Cut width (mm):",
+                algorithm: "Algorithm:",
+                add_piece: "Add panel piece",
+                piece_width: "Width (m):",
+                piece_height: "Length (m):",
+                quantity: "Quantity:",
+                piece_name: "Name (optional):",
+                piece_name_placeholder: "E.g., Table top",
+                add_piece_button: "Add piece",
+                piece_list: "Piece list",
+                no_pieces: "No pieces added",
+                calculate: "Calculate",
+                clear_all: "Clear all",
+                layout: "Cutting layout",
+                print: "Print",
+                zoom: "Zoom",
+                error_invalid_piece: "Invalid piece dimensions",
+                error_invalid_quantity: "Invalid quantity",
+                error_piece_too_large: "Piece dimensions exceed panel size",
+                error_no_pieces: "Please add at least one piece to cut",
+                error_invalid_sheet: "Invalid panel dimensions",
+                stats_sheets: "Number of panels",
+                stats_used_area: "Used area",
+                stats_waste_area: "Waste area",
+                stats_efficiency: "Efficiency",
+                sheet_label: "Panel"
+            },
+            ko: {
+                title: "패널 절단 최적화",
+                config: "설정",
+                sheet_width: "너비 (m):",
+                sheet_height: "길이 (m):",
+                cut_width: "절단 폭 (mm):",
+                algorithm: "알고리즘:",
+                add_piece: "절단 조각 추가",
+                piece_width: "너비 (m):",
+                piece_height: "길이 (m):",
+                quantity: "수량:",
+                piece_name: "이름 (선택):",
+                piece_name_placeholder: "예: 테이블 상판",
+                add_piece_button: "조각 추가",
+                piece_list: "조각 목록",
+                no_pieces: "추가된 조각 없음",
+                calculate: "계산",
+                clear_all: "모두 지우기",
+                layout: "절단 레이아웃",
+                print: "인쇄",
+                zoom: "확대",
+                error_invalid_piece: "잘못된 조각 크기",
+                error_invalid_quantity: "잘못된 수량",
+                error_piece_too_large: "조각 크기가 패널 크기를 초과합니다",
+                error_no_pieces: "최소한 하나의 절단 조각을 추가해주세요",
+                error_invalid_sheet: "잘못된 패널 크기",
+                stats_sheets: "패널 수",
+                stats_used_area: "사용 면적",
+                stats_waste_area: "폐기 면적",
+                stats_efficiency: "효율성",
+                sheet_label: "패널"
+            }
+        };
+
+        // Current language
+        let currentLang = 'vi';
+
+        // Function to update text based on language
+        function updateLanguage(lang) {
+            currentLang = lang;
+            document.documentElement.lang = lang;
+            document.querySelectorAll('[data-i18n]').forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                element.textContent = translations[lang][key] || element.textContent;
+            });
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
+                const key = element.getAttribute('data-i18n-placeholder');
+                element.placeholder = translations[lang][key] || element.placeholder;
+            });
+            // Update piece list count
+            const pieceCount = document.getElementById('piece-count').textContent;
+            document.querySelector('[data-i18n="piece_list"]').innerHTML = 
+                `${translations[lang].piece_list} (<span id="piece-count">${pieceCount}</span>)`;
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             const pieceList = [];
             let packingResult = null;
@@ -481,6 +675,30 @@
                 '#1abc9c', '#d35400', '#34495e', '#16a085', '#c0392b',
                 '#27ae60', '#f1c40f', '#8e44ad', '#2980b9', '#e67e22'
             ];
+
+            // Language switcher
+            const languageButton = document.querySelector('.language-button');
+            const languageMenu = document.querySelector('.language-menu');
+            
+            languageButton.addEventListener('click', () => {
+                languageMenu.classList.toggle('active');
+            });
+
+            document.querySelectorAll('.language-menu button').forEach(button => {
+                button.addEventListener('click', () => {
+                    const lang = button.getAttribute('data-lang');
+                    updateLanguage(lang);
+                    languageMenu.classList.remove('active');
+                    updatePieceList();
+                    if (packingResult) {
+                        displayResults(packingResult, 
+                            parseFloat(sheetWidthInput.value), 
+                            parseFloat(sheetHeightInput.value), 
+                            parseFloat(cutWidthInput.value) / 1000
+                        );
+                    }
+                });
+            });
 
             // Initialize accordion functionality
             const accordionHeaders = document.querySelectorAll('.accordion-header');
@@ -500,9 +718,7 @@
             const sheetHeightInput = document.getElementById('sheet-height');
             const cutWidthInput = document.getElementById('cut-width');
             const algorithmSelect = document.getElementById('algorithm');
-           
-
- const pieceWidthInput = document.getElementById('piece-width');
+            const pieceWidthInput = document.getElementById('piece-width');
             const pieceHeightInput = document.getElementById('piece-height');
             const pieceQuantityInput = document.getElementById('piece-quantity');
             const pieceNameInput = document.getElementById('piece-name');
@@ -530,22 +746,7 @@
                 const sheetWidth = parseFloat(sheetWidthInput.value);
                 const sheetHeight = parseFloat(sheetHeightInput.value);
 
-                if (isNaN(width) || width <= 0 || isNaN(height) || height <= 0) {
-                    showError('Kích thước mảnh ván không hợp lệ');
-                    return;
-                }
-
-                if (isNaN(quantity) || quantity <= 0) {
-                    showError('Số lượng không hợp lệ');
-                    return;
-                }
-
-                if (width > sheetWidth || height > sheetHeight) {
-                    if (width > sheetHeight || height > sheetWidth) {
-                        showError('Kích thước mảnh ván lớn hơn tấm ván gốc');
-                        return;
-                    }
-                }
+                                if (isNaN(width) || width <= 0 || isNaN(height) || height <= 0) {                    showError('error_invalid_piece');                    return;                }                if (isNaN(quantity) || quantity <= 0) {                    showError('error_invalid_quantity');                    return;                }                if (width > sheetWidth || height > sheetHeight) {                    if (width > sheetHeight || height > sheetWidth) {                        showError('error_piece_too_large');                        return;                    }                }
 
                 for (let i = 0; i < quantity; i++) {
                     pieceList.push({
@@ -563,7 +764,7 @@
             function updatePieceList() {
                 pieceCountElement.textContent = pieceList.length;
                 if (pieceList.length === 0) {
-                    pieceListElement.innerHTML = '<p>Chưa có mảnh ván nào</p>';
+                    pieceListElement.innerHTML = `<p data-i18n="no_pieces">${translations[currentLang].no_pieces}</p>`;
                     return;
                 }
 
@@ -595,7 +796,7 @@
                             ${group.pieces.map(piece => `
                                 <div class="piece-item">
                                     <div><strong>${piece.name}</strong> - ${piece.width.toFixed(2)}×${piece.height.toFixed(2)}m</div>
-                                    <button class="remove-piece" data-id="${piece.id}">Xóa</button>
+                                    <button class="remove-piece" data-id="${piece.id}">${translations[currentLang].clear_all.split(' ')[0]}</button>
                                 </div>
                             `).join('')}
                         </div>
@@ -644,30 +845,11 @@
             });
 
             // Show error message
-            function showError(message) {
-                errorMessage.textContent = message;
-                errorMessage.style.display = 'block';
-                setTimeout(() => {
-                    errorMessage.style.display = 'none';
-                }, 3000);
-            }
+                            function showError(messageKey) {                errorMessage.textContent = translations[currentLang][messageKey] || messageKey;                errorMessage.style.display = 'block';                setTimeout(() => {                    errorMessage.style.display = 'none';                }, 3000);            }
 
             // Calculate button click
             calculateButton.addEventListener('click', function() {
-                if (pieceList.length === 0) {
-                    showError('Vui lòng thêm ít nhất một mảnh ván cần cắt');
-                    return;
-                }
-
-                const sheetWidth = parseFloat(sheetWidthInput.value);
-                const sheetHeight = parseFloat(sheetHeightInput.value);
-                const cutWidth = parseFloat(cutWidthInput.value) / 1000;
-                const algorithm = algorithmSelect.value;
-
-                if (isNaN(sheetWidth) || sheetWidth <= 0 || isNaN(sheetHeight) || sheetHeight <= 0) {
-                    showError('Kích thước tấm ván không hợp lệ');
-                    return;
-                }
+                                if (pieceList.length === 0) {                    showError('error_no_pieces');                    return;                }                const sheetWidth = parseFloat(sheetWidthInput.value);                const sheetHeight = parseFloat(sheetHeightInput.value);                const cutWidth = parseFloat(cutWidthInput.value) / 1000;                const algorithm = algorithmSelect.value;                if (isNaN(sheetWidth) || sheetWidth <= 0 || isNaN(sheetHeight) || sheetHeight <= 0) {                    showError('error_invalid_sheet');                    return;                }
 
                 const piecesWithCuts = pieceList.map(piece => ({
                     id: piece.id,
@@ -1039,19 +1221,19 @@
                 // Display stats
                 statsElement.innerHTML = `
                     <div class="stat-card">
-                        <h3 style="color: black;">Số tấm ván</h3>
+                        <h3 style="color: black;">${translations[currentLang].stats_sheets}</h3>
                         <div class="value">${result.totalSheets}</div>
                     </div>
                     <div class="stat-card">
-                        <h3 style="color: black;">Diện tích sử dụng</h3>
+                        <h3 style="color: black;">${translations[currentLang].stats_used_area}</h3>
                         <div class="value">${(result.totalUsedArea).toFixed(2)} m²</div>
                     </div>
                     <div class="stat-card">
-                        <h3 style="color: black;">Diện tích thừa</h3>
+                        <h3 style="color: black;">${translations[currentLang].stats_waste_area}</h3>
                         <div class="value">${(result.totalArea - result.totalUsedArea).toFixed(2)} m²</div>
                     </div>
-                    <div class="stat-card">
-                        <h3 style="color: black;">Hiệu suất</h3>
+                        <div class="stat-card">
+                        <h3 style="color: black;">${translations[currentLang].stats_efficiency}</h3>
                         <div class="value">${result.efficiency.toFixed(1)}%</div>
                     </div>
                 `;
@@ -1062,8 +1244,8 @@
                 result.sheets.forEach((sheet, index) => {
                     const tabButton = document.createElement('button');
                     tabButton.className = `tab-button ${index === 0 ? 'active' : ''}`;
-                    tabButton.textContent = `Tấm ${index + 1}`;
-                    tabButton.dataset.index = index;
+                        tabButton.textContent = `${translations[currentLang].sheet_label} ${index + 1}`;
+                        tabButton.dataset.index = index;
                     layoutTabsElement.appendChild(tabButton);
 
                     const canvas = document.createElement('canvas');
@@ -1218,14 +1400,14 @@
 
                     // Add title
                     pdfDoc.setFontSize(16);
-                    pdfDoc.text(`Tấm ${index + 1}`, margin, margin + 10);
+                    pdfDoc.text(`${translations[currentLang].sheet_label} ${index + 1}`, margin, margin + 10);
 
                     // Add canvas image
                     pdfDoc.addImage(imgData, 'PNG', margin, margin + 20, imgWidth, imgHeight);
                 });
 
-                // Save PDF
-                pdfDoc.save('cutting_layout.pdf');
+                    // Save PDF                
+                    pdfDoc.save(`${translations[currentLang].title.toLowerCase().replace(/\s+/g, '_')}.pdf`);
             });
 
             // Zoom fit
