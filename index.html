@@ -1,51 +1,13 @@
-<script type="text/javascript">
-        var gk_isXlsx = false;
-        var gk_xlsxFileLookup = {};
-        var gk_fileData = {};
-        function filledCell(cell) {
-          return cell !== '' && cell != null;
-        }
-        function loadFileData(filename) {
-        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
-            try {
-                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
-                var firstSheetName = workbook.SheetNames[0];
-                var worksheet = workbook.Sheets[firstSheetName];
-
-                // Convert sheet to JSON to filter blank rows
-                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
-                // Filter out blank rows (rows where all cells are empty, null, or undefined)
-                var filteredData = jsonData.filter(row => row.some(filledCell));
-
-                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
-                var headerRowIndex = filteredData.findIndex((row, index) =>
-                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
-                );
-                // Fallback
-                if (headerRowIndex === -1 || headerRowIndex > 25) {
-                  headerRowIndex = 0;
-                }
-
-                // Convert filtered JSON back to CSV
-                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
-                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
-                return csv;
-            } catch (e) {
-                console.error(e);
-                return "";
-            }
-        }
-        return gk_fileData[filename] || "";
-        }
-        </script><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/7166/7166938.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trình Tối Ưu Cắt Ván</title>
     <style>
         :root {
-            --primary-color: #3498db;
+            --primary-color: #184D5A;
             --secondary-color: #2980b9;
             --accent-color: #e74c3c;
             --text-color: #333;
@@ -419,8 +381,8 @@
                         <div class="form-group">
                             <label for="algorithm">Thuật toán:</label>
                             <select id="algorithm">
-                                <option value="maxrects">MaxRects</option>
                                 <option value="guillotine">Guillotine</option>
+                                <option value="maxrects">MaxRects</option>
                             </select>
                         </div>
                     </div>
@@ -509,7 +471,7 @@
         </div>
     </div>
 
-    <script src="pdf.min.js"></script>
+    <script src="jspdf.umd.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const pieceList = [];
@@ -538,7 +500,9 @@
             const sheetHeightInput = document.getElementById('sheet-height');
             const cutWidthInput = document.getElementById('cut-width');
             const algorithmSelect = document.getElementById('algorithm');
-            const pieceWidthInput = document.getElementById('piece-width');
+           
+
+ const pieceWidthInput = document.getElementById('piece-width');
             const pieceHeightInput = document.getElementById('piece-height');
             const pieceQuantityInput = document.getElementById('piece-quantity');
             const pieceNameInput = document.getElementById('piece-name');
@@ -1075,19 +1039,19 @@
                 // Display stats
                 statsElement.innerHTML = `
                     <div class="stat-card">
-                        <h3>Số tấm ván</h3>
+                        <h3 style="color: black;">Số tấm ván</h3>
                         <div class="value">${result.totalSheets}</div>
                     </div>
                     <div class="stat-card">
-                        <h3>Diện tích sử dụng</h3>
+                        <h3 style="color: black;">Diện tích sử dụng</h3>
                         <div class="value">${(result.totalUsedArea).toFixed(2)} m²</div>
                     </div>
                     <div class="stat-card">
-                        <h3>Diện tích thừa</h3>
+                        <h3 style="color: black;">Diện tích thừa</h3>
                         <div class="value">${(result.totalArea - result.totalUsedArea).toFixed(2)} m²</div>
                     </div>
                     <div class="stat-card">
-                        <h3>Hiệu suất</h3>
+                        <h3 style="color: black;">Hiệu suất</h3>
                         <div class="value">${result.efficiency.toFixed(1)}%</div>
                     </div>
                 `;
@@ -1225,38 +1189,43 @@
             exportPdfButton.addEventListener('click', async function() {
                 if (!packingResult) return;
 
-                const { pdfjsLib } = window;
-                const pdfDoc = await pdfjsLib.createDocument();
-                
-                packingResult.sheets.forEach((sheet, index) => {
-                    const page = pdfDoc.addPage();
-                    const canvas = document.getElementById(`canvas-${index}`);
-                    
-                    const scale = 500 / Math.max(sheet.width, sheet.height);
-                    const imgData = canvas.toDataURL('image/png');
-                    
-                    page.drawImage(imgData, {
-                        x: 50,
-                        y: 50,
-                        width: sheet.width * scale,
-                        height: sheet.height * scale
-                    });
-                    
-                    page.drawText(`Tấm ${index + 1}`, {
-                        x: 50,
-                        y: 30,
-                        size: 16
-                    });
+                const { jsPDF } = window.jspdf;
+                const pdfDoc = new jsPDF({
+                    orientation: sheetWidthInput.value > sheetHeightInput.value ? 'landscape' : 'portrait',
+                    unit: 'mm',
+                    format: 'a4'
                 });
 
-                const pdfBytes = await pdfDoc.save();
-                const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'cutting_layout.pdf';
-                a.click();
-                URL.revokeObjectURL(url);
+                packingResult.sheets.forEach((sheet, index) => {
+                    if (index > 0) {
+                        pdfDoc.addPage();
+                    }
+
+                    const canvas = document.getElementById(`canvas-${index}`);
+                    const imgData = canvas.toDataURL('image/png');
+                    const sheetWidth = parseFloat(sheetWidthInput.value);
+                    const sheetHeight = parseFloat(sheetHeightInput.value);
+
+                    // Calculate dimensions to fit A4 page (210mm x 297mm)
+                    const pageWidth = pdfDoc.internal.pageSize.getWidth();
+                    const pageHeight = pdfDoc.internal.pageSize.getHeight();
+                    const margin = 10;
+                    const maxWidth = pageWidth - 2 * margin;
+                    const maxHeight = pageHeight - 2 * margin - 20; // Reserve space for title
+                    const scale = Math.min(maxWidth / sheetWidth, maxHeight / sheetHeight);
+                    const imgWidth = sheetWidth * scale;
+                    const imgHeight = sheetHeight * scale;
+
+                    // Add title
+                    pdfDoc.setFontSize(16);
+                    pdfDoc.text(`Tấm ${index + 1}`, margin, margin + 10);
+
+                    // Add canvas image
+                    pdfDoc.addImage(imgData, 'PNG', margin, margin + 20, imgWidth, imgHeight);
+                });
+
+                // Save PDF
+                pdfDoc.save('cutting_layout.pdf');
             });
 
             // Zoom fit
