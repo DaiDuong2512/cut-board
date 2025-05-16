@@ -645,11 +645,12 @@
         };
 
         // Current language
-        let currentLang = 'vi';
+        let currentLang = localStorage.getItem('language') || 'en';
 
         // Function to update text based on language
         function updateLanguage(lang) {
             currentLang = lang;
+            localStorage.setItem('language', lang); // Save to localStorage
             document.documentElement.lang = lang;
             document.querySelectorAll('[data-i18n]').forEach(element => {
                 const key = element.getAttribute('data-i18n');
@@ -660,12 +661,18 @@
                 element.placeholder = translations[lang][key] || element.placeholder;
             });
             // Update piece list count
-            const pieceCount = document.getElementById('piece-count').textContent;
-            document.querySelector('[data-i18n="piece_list"]').innerHTML = 
-                `${translations[lang].piece_list} (<span id="piece-count">${pieceCount}</span>)`;
+            const pieceCountElement = document.getElementById('piece-count');
+            if (pieceCountElement) {
+                const pieceCount = pieceCountElement.textContent;
+                document.querySelector('[data-i18n="piece_list"]').innerHTML = 
+                    `${translations[lang].piece_list} (<span id="piece-count">${pieceCount}</span>)`;
+            }
         }
 
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize with cached or default language
+            updateLanguage(currentLang);
+
             const pieceList = [];
             let packingResult = null;
             const colors = [
