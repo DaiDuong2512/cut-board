@@ -1,0 +1,1280 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trình Tối Ưu Cắt Ván</title>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2980b9;
+            --accent-color: #e74c3c;
+            --text-color: #333;
+            --bg-color: #f9f9f9;
+            --card-bg: #fff;
+            --border-color: #ddd;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.5;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            padding: 0.5rem;
+        }
+
+        h1, h2, h3 {
+            margin-bottom: 0.5rem;
+            color: var(--primary-color);
+        }
+
+        h1 {
+            text-align: center;
+            margin: 0.5rem 0 1rem;
+            font-size: 1.5rem;
+        }
+
+        h2 {
+            font-size: 1.2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.75rem;
+        }
+
+        @media (min-width: 768px) {
+            .container {
+                grid-template-columns: 300px 1fr;
+                gap: 1rem;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .form-group {
+            margin-bottom: 0.5rem;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.25rem;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        input, button, select {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color: 0.3s;
+            margin-top: 0.25rem;
+            padding: 0.6rem;
+        }
+
+        button:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .piece-list {
+            max-height: 200px;
+            overflow-y: auto;
+            margin: 0.5rem 0;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 0.25rem;
+        }
+
+        .piece-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.35rem;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.9rem;
+        }
+
+        .piece-item:last-child {
+            border-bottom: none;
+        }
+
+        .piece-group-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.35rem;
+            cursor: pointer;
+            background-color: #f5f5f5;
+            border-radius: 4px;
+            margin-bottom: 0.25rem;
+        }
+
+        .piece-group-header:hover {
+            background-color: #eee;
+        }
+
+        .piece-group-content {
+            display: none;
+            padding: 0.25rem 0.5rem;
+        }
+
+        .piece-group-content.active {
+            display: block;
+        }
+
+        .remove-piece {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 0.2rem 0.4rem;
+            cursor: pointer;
+            width: auto;
+            font-size: 0.8rem;
+            margin-top: 0;
+            margin-left: 0.5rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .action-buttons button {
+            flex: 1;
+        }
+
+        .results {
+            margin-top: 0.5rem;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        @media (min-width: 480px) {
+            .stats {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 0.6rem;
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            font-size: 0.8rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-card .value {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .canvas-container {
+            width: 100%;
+            overflow-x: auto;
+            margin-top: 0.5rem;
+        }
+
+        canvas {
+            border: 1px solid var(--border-color);
+            background-color: white;
+            margin-bottom: 1rem;
+        }
+
+        .layout-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            margin-bottom: 0.5rem;
+        }
+
+        .tab-button {
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-bottom: none;
+            border-radius: 4px 4px 0 0;
+            padding: 0.4rem 0.6rem;
+            margin-right: 0.25rem;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.85rem;
+            transition: background-color: 0.2s;
+        }
+
+        .tab-button.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            font-size: 0.85rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+        }
+
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            margin-right: 0.25rem;
+            border: 1px solid #333;
+        }
+
+        .alert {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 0.5rem;
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .button-icon {
+            margin-right: 0.25rem;
+        }
+
+        .accordion-header {
+            padding: 0.5rem;
+            background-color: #f0f0f0;
+            cursor: pointer;
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .accordion-content {
+            display: none;
+            padding: 0 0.5rem;
+        }
+
+        .accordion-content.active {
+            display: block;
+        }
+
+        .export-buttons {
+            display: flex;
+            gap: 0.3rem;
+            margin-top: 0.5rem;
+        }
+
+        .export-buttons button {
+            padding: 0.4rem 0.6rem;
+            font-size: 0.85rem;
+            min-width: 80px;
+        }
+
+        @media print {
+            .controls {
+                display: none;
+            }
+
+            .container {
+                display: block;
+            }
+
+            .card {
+                box-shadow: none;
+                border: 1px solid #ccc;
+            }
+
+            .canvas-container {
+                page-break-inside: avoid;
+            }
+
+            .layout-tabs, 
+            .export-buttons {
+                display: none;
+            }
+
+            canvas {
+                display: block !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Trình Tối Ưu Cắt Ván</h1>
+    
+    <div class="container">
+        <div class="controls">
+            <!-- Cấu hình -->
+            <div class="card">
+                <div class="accordion-header" data-target="config-content">
+                    <span>Cấu hình</span>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="accordion-content active" id="config-content">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="sheet-width">Chiều rộng (m):</label>
+                            <input type="number" id="sheet-width" step="0.01" value="1.22">
+                        </div>
+                        <div class="form-group">
+                            <label for="sheet-height">Chiều dài (m):</label>
+                            <input type="number" id="sheet-height" step="0.01" value="2.44">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="cut-width">Độ rộng cắt (mm):</label>
+                            <input type="number" id="cut-width" value="3">
+                        </div>
+                        <div class="form-group">
+                            <label for="algorithm">Thuật toán:</label>
+                            <select id="algorithm">
+                                <option value="guillotine">Guillotine</option>
+                                <option value="maxrects">MaxRects</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Thêm mảnh ván -->
+            <div class="card">
+                <div class="accordion-header" data-target="add-piece-content">
+                    <span>Thêm mảnh ván cần cắt</span>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="accordion-content active" id="add-piece-content">
+                    <div class="alert" id="error-message"></div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="piece-width">Chiều rộng (m):</label>
+                            <input type="number" id="piece-width" step="0.01" value="0.5">
+                        </div>
+                        <div class="form-group">
+                            <label for="piece-height">Chiều dài (m):</label>
+                            <input type="number" id="piece-height" step="0.01" value="0.5">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="piece-quantity">Số lượng:</label>
+                            <input type="number" id="piece-quantity" value="1" min="1">
+                        </div>
+                        <div class="form-group">
+                            <label for="piece-name">Tên (tùy chọn):</label>
+                            <input type="text" id="piece-name" placeholder="VD: Mặt bàn">
+                        </div>
+                    </div>
+                    <button id="add-piece"><span class="button-icon">+</span> Thêm mảnh ván</button>
+                </div>
+            </div>
+
+            <!-- Danh sách mảnh ván -->
+            <div class="card">
+                <div class="accordion-header" data-target="piece-list-content">
+                    <span>Danh sách mảnh ván (<span id="piece-count">0</span>)</span>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="accordion-content active" id="piece-list-content">
+                    <div class="piece-list" id="piece-list">
+                        <p>Chưa có mảnh ván nào</p>
+                    </div>
+                    <div class="action-buttons">
+                        <button id="calculate"><span class="button-icon">✓</span> Tính toán</button>
+                        <button id="clear-pieces"><span class="button-icon">×</span> Xóa tất cả</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="results">
+            <!-- Thống kê -->
+            <div class="stats" id="stats">
+                <!-- Stats will be populated here -->
+            </div>
+
+            <!-- Layout cắt ván -->
+            <div class="card">
+                <div class="accordion-header" data-target="layout-content">
+                    <span>Layout cắt ván</span>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="accordion-content active" id="layout-content">
+                    <div class="layout-tabs" id="layout-tabs">
+                        <!-- Tabs will be added here -->
+                    </div>
+                    <div class="canvas-container" id="canvas-container">
+                        <!-- Canvas elements will be added here -->
+                    </div>
+                    <div class="legend" id="legend">
+                        <!-- Legend will be added here -->
+                    </div>
+                    <div class="export-buttons">
+                        <button id="print-layout"><span class="button-icon">🖨️</span> In</button>
+                        <button id="export-pdf"><span class="button-icon">📄</span> PDF</button>
+                        <button id="zoom-fit"><span class="button-icon">🔍</span> Zoom</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.9.359/pdf.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const pieceList = [];
+            let packingResult = null;
+            const colors = [
+                '#3498db', '#e74c3c', '#2ecc71', '#f39c12', '#9b59b6',
+                '#1abc9c', '#d35400', '#34495e', '#16a085', '#c0392b',
+                '#27ae60', '#f1c40f', '#8e44ad', '#2980b9', '#e67e22'
+            ];
+
+            // Initialize accordion functionality
+            const accordionHeaders = document.querySelectorAll('.accordion-header');
+            accordionHeaders.forEach(header => {
+                header.addEventListener('click', function() {
+                    const targetId = this.getAttribute('data-target');
+                    const targetContent = document.getElementById(targetId);
+                    targetContent.classList.toggle('active');
+                    
+                    const toggleIcon = this.querySelector('.toggle-icon');
+                    toggleIcon.textContent = targetContent.classList.contains('active') ? '▼' : '►';
+                });
+            });
+
+            // Elements
+            const sheetWidthInput = document.getElementById('sheet-width');
+            const sheetHeightInput = document.getElementById('sheet-height');
+            const cutWidthInput = document.getElementById('cut-width');
+            const algorithmSelect = document.getElementById('algorithm');
+            const pieceWidthInput = document.getElementById('piece-width');
+            const pieceHeightInput = document.getElementById('piece-height');
+            const pieceQuantityInput = document.getElementById('piece-quantity');
+            const pieceNameInput = document.getElementById('piece-name');
+            const addPieceButton = document.getElementById('add-piece');
+            const pieceListElement = document.getElementById('piece-list');
+            const calculateButton = document.getElementById('calculate');
+            const clearPiecesButton = document.getElementById('clear-pieces');
+            const statsElement = document.getElementById('stats');
+            const layoutTabsElement = document.getElementById('layout-tabs');
+            const canvasContainerElement = document.getElementById('canvas-container');
+            const legendElement = document.getElementById('legend');
+            const printLayoutButton = document.getElementById('print-layout');
+            const exportPdfButton = document.getElementById('export-pdf');
+            const zoomFitButton = document.getElementById('zoom-fit');
+            const pieceCountElement = document.getElementById('piece-count');
+            const errorMessage = document.getElementById('error-message');
+
+            // Add piece
+            addPieceButton.addEventListener('click', function() {
+                const width = parseFloat(pieceWidthInput.value);
+                const height = parseFloat(pieceHeightInput.value);
+                const quantity = parseInt(pieceQuantityInput.value);
+                const name = pieceNameInput.value.trim() || `Mảnh ${pieceList.length + 1}`;
+                
+                const sheetWidth = parseFloat(sheetWidthInput.value);
+                const sheetHeight = parseFloat(sheetHeightInput.value);
+
+                if (isNaN(width) || width <= 0 || isNaN(height) || height <= 0) {
+                    showError('Kích thước mảnh ván không hợp lệ');
+                    return;
+                }
+
+                if (isNaN(quantity) || quantity <= 0) {
+                    showError('Số lượng không hợp lệ');
+                    return;
+                }
+
+                if (width > sheetWidth || height > sheetHeight) {
+                    if (width > sheetHeight || height > sheetWidth) {
+                        showError('Kích thước mảnh ván lớn hơn tấm ván gốc');
+                        return;
+                    }
+                }
+
+                for (let i = 0; i < quantity; i++) {
+                    pieceList.push({
+                        id: Date.now() + i,
+                        width,
+                        height,
+                        name: `${name}${quantity > 1 ? ' ' + (i + 1) : ''}`
+                    });
+                }
+                updatePieceList();
+                clearPieceInputs();
+            });
+
+            // Update piece list display
+            function updatePieceList() {
+                pieceCountElement.textContent = pieceList.length;
+                if (pieceList.length === 0) {
+                    pieceListElement.innerHTML = '<p>Chưa có mảnh ván nào</p>';
+                    return;
+                }
+
+                // Group pieces by dimensions
+                const pieceGroups = {};
+                pieceList.forEach(piece => {
+                    const key = `${piece.width.toFixed(2)}×${piece.height.toFixed(2)}`;
+                    if (!pieceGroups[key]) {
+                        pieceGroups[key] = {
+                            width: piece.width,
+                            height: piece.height,
+                            pieces: []
+                        };
+                    }
+                    pieceGroups[key].pieces.push(piece);
+                });
+
+                pieceListElement.innerHTML = '';
+                Object.keys(pieceGroups).forEach((key, index) => {
+                    const group = pieceGroups[key];
+                    const groupElement = document.createElement('div');
+                    groupElement.className = 'piece-group';
+                    groupElement.innerHTML = `
+                        <div class="piece-group-header" data-group-id="${index}">
+                            <span>${group.width.toFixed(2)}×${group.height.toFixed(2)}m - x${group.pieces.length} ea</span>
+                            <span class="toggle-icon">▿</span>
+                        </div>
+                        <div class="piece-group-content" id="group-content-${index}">
+                            ${group.pieces.map(piece => `
+                                <div class="piece-item">
+                                    <div><strong>${piece.name}</strong> - ${piece.width.toFixed(2)}×${piece.height.toFixed(2)}m</div>
+                                    <button class="remove-piece" data-id="${piece.id}">Xóa</button>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                    pieceListElement.appendChild(groupElement);
+                });
+
+                // Add toggle event listeners for group headers
+                document.querySelectorAll('.piece-group-header').forEach(header => {
+                    header.addEventListener('click', function() {
+                        const groupId = this.getAttribute('data-group-id');
+                        const content = document.getElementById(`group-content-${groupId}`);
+                        content.classList.toggle('active');
+                        const toggleIcon = this.querySelector('.toggle-icon');
+                        toggleIcon.textContent = content.classList.contains('active') ? '▵' : '▿';
+                    });
+                });
+
+                // Add remove event listeners
+                document.querySelectorAll('.remove-piece').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const id = parseInt(this.getAttribute('data-id'));
+                        const index = pieceList.findIndex(piece => piece.id === id);
+                        if (index !== -1) {
+                            pieceList.splice(index, 1);
+                            updatePieceList();
+                        }
+                    });
+                });
+            }
+
+            // Clear piece inputs
+            function clearPieceInputs() {
+                pieceWidthInput.value = '0.5';
+                pieceHeightInput.value = '0.5';
+                pieceQuantityInput.value = '1';
+                pieceNameInput.value = '';
+                pieceWidthInput.focus();
+            }
+
+            // Clear all pieces
+            clearPiecesButton.addEventListener('click', function() {
+                pieceList.length = 0;
+                updatePieceList();
+                clearResults();
+            });
+
+            // Show error message
+            function showError(message) {
+                errorMessage.textContent = message;
+                errorMessage.style.display = 'block';
+                setTimeout(() => {
+                    errorMessage.style.display = 'none';
+                }, 3000);
+            }
+
+            // Calculate button click
+            calculateButton.addEventListener('click', function() {
+                if (pieceList.length === 0) {
+                    showError('Vui lòng thêm ít nhất một mảnh ván cần cắt');
+                    return;
+                }
+
+                const sheetWidth = parseFloat(sheetWidthInput.value);
+                const sheetHeight = parseFloat(sheetHeightInput.value);
+                const cutWidth = parseFloat(cutWidthInput.value) / 1000;
+                const algorithm = algorithmSelect.value;
+
+                if (isNaN(sheetWidth) || sheetWidth <= 0 || isNaN(sheetHeight) || sheetHeight <= 0) {
+                    showError('Kích thước tấm ván không hợp lệ');
+                    return;
+                }
+
+                const piecesWithCuts = pieceList.map(piece => ({
+                    id: piece.id,
+                    name: piece.name,
+                    width: piece.width + cutWidth,
+                    height: piece.height + cutWidth,
+                    originalWidth: piece.width,
+                    originalHeight: piece.height
+                }));
+
+                piecesWithCuts.sort((a, b) => (b.width * b.height) - (a.width * a.height));
+
+                packingResult = algorithm === 'guillotine' 
+                    ? guillotinePack(piecesWithCuts, sheetWidth, sheetHeight)
+                    : maxRectsPack(piecesWithCuts, sheetWidth, sheetHeight);
+
+                displayResults(packingResult, sheetWidth, sheetHeight, cutWidth);
+            });
+
+            // Guillotine packing algorithm
+            function guillotinePack(pieces, sheetWidth, sheetHeight) {
+                const sheets = [];
+                let remainingPieces = [...pieces];
+
+                while (remainingPieces.length > 0) {
+                    const sheet = {
+                        width: sheetWidth,
+                        height: sheetHeight,
+                        pieces: [],
+                        freeRectangles: [{x: 0, y: 0, width: sheetWidth, height: sheetHeight}],
+                        waste: sheetWidth * sheetHeight
+                    };
+                    sheets.push(sheet);
+
+                    let placed = true;
+                    while (placed) {
+                        placed = false;
+                        
+                        for (let i = 0; i < remainingPieces.length; i++) {
+                            const piece = remainingPieces[i];
+                            
+                            const placement = findBestGuillotinePlacement(piece, sheet.freeRectangles);
+                            
+                            if (placement) {
+                                sheet.pieces.push({
+                                    id: piece.id,
+                                    name: piece.name,
+                                    x: placement.x,
+                                    y: placement.y,
+                                    width: piece.originalWidth,
+                                    height: piece.originalHeight,
+                                    fullWidth: piece.width,
+                                    fullHeight: piece.height
+                                });
+                                
+                                splitRectangle(sheet.freeRectangles, placement);
+                                remainingPieces.splice(i, 1);
+                                sheet.waste -= piece.originalWidth * piece.originalHeight;
+                                placed = true;
+                                break;
+                            }
+                            
+                            const rotatedPiece = {
+                                id: piece.id,
+                                name: piece.name,
+                                width: piece.height,
+                                height: piece.width,
+                                originalWidth: piece.originalHeight,
+                                originalHeight: piece.originalWidth
+                            };
+                            
+                            const rotatedPlacement = findBestGuillotinePlacement(rotatedPiece, sheet.freeRectangles);
+                            
+                            if (rotatedPlacement) {
+                                sheet.pieces.push({
+                                    id: piece.id,
+                                    name: piece.name,
+                                    x: rotatedPlacement.x,
+                                    y: rotatedPlacement.y,
+                                    width: rotatedPiece.originalWidth,
+                                    height: rotatedPiece.originalHeight,
+                                    fullWidth: rotatedPiece.width,
+                                    fullHeight: rotatedPiece.height,
+                                    rotated: true
+                                });
+                                
+                                splitRectangle(sheet.freeRectangles, rotatedPlacement);
+                                remainingPieces.splice(i, 1);
+                                sheet.waste -= rotatedPiece.originalWidth * piece.originalHeight;
+                                placed = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                return calculateStats(sheets, sheetWidth, sheetHeight);
+            }
+
+            // Find best guillotine placement
+            function findBestGuillotinePlacement(piece, freeRects) {
+                let bestPlacement = null;
+                let bestScore = Infinity;
+
+                for (const rect of freeRects) {
+                    if (rect.width >= piece.width && rect.height >= piece.height) {
+                        const score = Math.min(
+                            rect.width - piece.width,
+                            rect.height - piece.height
+                        );
+
+                        if (score < bestScore) {
+                            bestScore = score;
+                            bestPlacement = {
+                                x: rect.x,
+                                y: rect.y,
+                                width: piece.width,
+                                height: piece.height,
+                                rectIndex: freeRects.indexOf(rect)
+                            };
+                        }
+                    }
+                }
+
+                return bestPlacement;
+            }
+
+            // Split rectangle after placing a piece
+            function splitRectangle(freeRects, placement) {
+                const rect = freeRects[placement.rectIndex];
+                freeRects.splice(placement.rectIndex, 1);
+
+                if (rect.width > placement.width) {
+                    freeRects.push({
+                        x: rect.x + placement.width,
+                        y: rect.y,
+                        width: rect.width - placement.width,
+                        height: rect.height
+                    });
+                }
+
+                if (rect.height > placement.height) {
+                    freeRects.push({
+                        x: rect.x,
+                        y: rect.y + placement.height,
+                        width: placement.width,
+                        height: rect.height - placement.height
+                    });
+                }
+
+                for (let i = freeRects.length - 1; i >= 0; i--) {
+                    for (let j = i - 1; j >= 0; j--) {
+                        if (isRectContained(freeRects[i], freeRects[j])) {
+                            freeRects.splice(i, 1);
+                            break;
+                        } else if (isRectContained(freeRects[j], freeRects[i])) {
+                            freeRects.splice(j, 1);
+                            i--;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // MaxRects packing algorithm
+            function maxRectsPack(pieces, sheetWidth, sheetHeight) {
+                const sheets = [];
+                let remainingPieces = [...pieces];
+
+                while (remainingPieces.length > 0) {
+                    const sheet = {
+                        width: sheetWidth,
+                        height: sheetHeight,
+                        pieces: [],
+                        freeRectangles: [{x: 0, y: 0, width: sheetWidth, height: sheetHeight}],
+                        waste: sheetWidth * sheetHeight
+                    };
+                    sheets.push(sheet);
+
+                    let placed = true;
+                    while (placed) {
+                        placed = false;
+                        
+                        for (let i = 0; i < remainingPieces.length; i++) {
+                            const piece = remainingPieces[i];
+                            
+                            const placement = findBestMaxRectsPlacement(piece, sheet.freeRectangles);
+                            
+                            if (placement) {
+                                sheet.pieces.push({
+                                    id: piece.id,
+                                    name: piece.name,
+                                    x: placement.x,
+                                    y: placement.y,
+                                    width: piece.originalWidth,
+                                    height: piece.originalHeight,
+                                    fullWidth: piece.width,
+                                    fullHeight: piece.height
+                                });
+                                
+                                updateMaxRectsFreeRectangles(sheet.freeRectangles, placement);
+                                remainingPieces.splice(i, 1);
+                                sheet.waste -= piece.originalWidth * piece.originalHeight;
+                                placed = true;
+                                break;
+                            }
+                            
+                            const rotatedPiece = {
+                                id: piece.id,
+                                name: piece.name,
+                                width: piece.height,
+                                height: piece.width,
+                                originalWidth: piece.originalHeight,
+                                originalHeight: piece.originalWidth
+                            };
+                            
+                            const rotatedPlacement = findBestMaxRectsPlacement(rotatedPiece, sheet.freeRectangles);
+                            
+                            if (rotatedPlacement) {
+                                sheet.pieces.push({
+                                    id: piece.id,
+                                    name: piece.name,
+                                    x: rotatedPlacement.x,
+                                    y: rotatedPlacement.y,
+                                    width: rotatedPiece.originalWidth,
+                                    height: rotatedPiece.originalHeight,
+                                    fullWidth: rotatedPiece.width,
+                                    fullHeight: rotatedPiece.height,
+                                    rotated: true
+                                });
+                                
+                                updateMaxRectsFreeRectangles(sheet.freeRectangles, rotatedPlacement);
+                                remainingPieces.splice(i, 1);
+                                sheet.waste -= rotatedPiece.originalWidth * rotatedPiece.originalHeight;
+                                placed = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                return calculateStats(sheets, sheetWidth, sheetHeight);
+            }
+
+            // Find best MaxRects placement
+            function findBestMaxRectsPlacement(piece, freeRects) {
+                let bestPlacement = null;
+                let bestScore = Infinity;
+
+                for (const rect of freeRects) {
+                    if (rect.width >= piece.width && rect.height >= piece.height) {
+                        const score = Math.min(
+                            rect.width - piece.width,
+                            rect.height - piece.height
+                        );
+
+                        if (score < bestScore) {
+                            bestScore = score;
+                            bestPlacement = {
+                                x: rect.x,
+                                y: rect.y,
+                                width: piece.width,
+                                height: piece.height
+                            };
+                        }
+                    }
+                }
+
+                return bestPlacement;
+            }
+
+            // Update MaxRects free rectangles
+            function updateMaxRectsFreeRectangles(freeRects, placement) {
+                const newRects = [];
+                for (let i = freeRects.length - 1; i >= 0; i--) {
+                    const rect = freeRects[i];
+                    if (isOverlapping(rect, placement)) {
+                        freeRects.splice(i, 1);
+                        
+                        if (rect.y < placement.y) {
+                            newRects.push({
+                                x: rect.x,
+                                y: rect.y,
+                                width: rect.width,
+                                height: placement.y - rect.y
+                            });
+                        }
+                        
+                        if (rect.y + rect.height > placement.y + placement.height) {
+                            newRects.push({
+                                x: rect.x,
+                                y: placement.y + placement.height,
+                                width: rect.width,
+                                height: (rect.y + rect.height) - (placement.y + placement.height)
+                            });
+                        }
+                        
+                        if (rect.x < placement.x) {
+                            newRects.push({
+                                x: rect.x,
+                                y: rect.y,
+                                width: placement.x - rect.x,
+                                height: rect.height
+                            });
+                        }
+                        
+                        if (rect.x + rect.width > placement.x + placement.width) {
+                            newRects.push({
+                                x: placement.x + placement.width,
+                                y: rect.y,
+                                width: (rect.x + rect.width) - (placement.x + placement.width),
+                                height: rect.height
+                            });
+                        }
+                    }
+                }
+                
+                freeRects.push(...newRects);
+                
+                for (let i = freeRects.length - 1; i >= 0; i--) {
+                    for (let j = i - 1; j >= 0; j--) {
+                        if (isRectContained(freeRects[i], freeRects[j])) {
+                            freeRects.splice(i, 1);
+                            break;
+                        } else if (isRectContained(freeRects[j], freeRects[i])) {
+                            freeRects.splice(j, 1);
+                            i--;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // Check if rectangles overlap
+            function isOverlapping(rect1, rect2) {
+                return !(rect1.x >= rect2.x + rect2.width ||
+                        rect1.x + rect1.width <= rect2.x ||
+                        rect1.y >= rect2.y + rect2.height ||
+                        rect1.y + rect1.height <= rect2.y);
+            }
+
+            // Check if rect1 is contained within rect2
+            function isRectContained(rect1, rect2) {
+                return rect1.x >= rect2.x && 
+                       rect1.y >= rect2.y && 
+                       rect1.x + rect1.width <= rect2.x + rect2.width && 
+                       rect1.y + rect1.height <= rect2.y + rect2.height;
+            }
+
+            // Calculate statistics
+            function calculateStats(sheets, sheetWidth, sheetHeight) {
+                const totalSheets = sheets.length;
+                const totalArea = totalSheets * (sheetWidth * sheetHeight);
+                const totalUsedArea = sheets.reduce((sum, sheet) => 
+                    sum + sheet.pieces.reduce((s, p) => s + (p.width * p.height), 0), 0);
+                const efficiency = (totalUsedArea / totalArea) * 100;
+
+                return {
+                    sheets,
+                    totalSheets,
+                    totalArea,
+                    totalUsedArea,
+                    efficiency
+                };
+            }
+
+            // Display results
+            function displayResults(result, sheetWidth, sheetHeight, cutWidth) {
+                // Display stats
+                statsElement.innerHTML = `
+                    <div class="stat-card">
+                        <h3>Số tấm ván</h3>
+                        <div class="value">${result.totalSheets}</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Diện tích sử dụng</h3>
+                        <div class="value">${(result.totalUsedArea).toFixed(2)} m²</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Diện tích thừa</h3>
+                        <div class="value">${(result.totalArea - result.totalUsedArea).toFixed(2)} m²</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Hiệu suất</h3>
+                        <div class="value">${result.efficiency.toFixed(1)}%</div>
+                    </div>
+                `;
+
+                // Create tabs and canvases
+                layoutTabsElement.innerHTML = '';
+                canvasContainerElement.innerHTML = '';
+                result.sheets.forEach((sheet, index) => {
+                    const tabButton = document.createElement('button');
+                    tabButton.className = `tab-button ${index === 0 ? 'active' : ''}`;
+                    tabButton.textContent = `Tấm ${index + 1}`;
+                    tabButton.dataset.index = index;
+                    layoutTabsElement.appendChild(tabButton);
+
+                    const canvas = document.createElement('canvas');
+                    canvas.id = `canvas-${index}`;
+                    canvas.style.display = index === 0 ? 'block' : 'none';
+                    canvasContainerElement.appendChild(canvas);
+                    drawSheet(canvas, sheet, sheetWidth, sheetHeight, index);
+                });
+
+                // Tab switching
+                layoutTabsElement.querySelectorAll('.tab-button').forEach(button => {
+                    button.addEventListener('click', function() {
+                        layoutTabsElement.querySelector('.active').classList.remove('active');
+                        this.classList.add('active');
+
+                        canvasContainerElement.querySelectorAll('canvas').forEach(canvas => {
+                            canvas.style.display = 'none';
+                        });
+                        document.getElementById(`canvas-${this.dataset.index}`).style.display = 'block';
+                    });
+                });
+
+                // Create legend
+                const legendItems = new Map();
+                result.sheets.forEach(sheet => {
+                    sheet.pieces.forEach((piece, index) => {
+                        const key = `${piece.width.toFixed(2)}m × ${piece.height.toFixed(2)}m`;
+                        if (!legendItems.has(key)) {
+                            legendItems.set(key, colors[index % colors.length]);
+                        }
+                    });
+                });
+
+                legendElement.innerHTML = '';
+                legendItems.forEach((color, dimensions) => {
+                    const legendItem = document.createElement('div');
+                    legendItem.className = 'legend-item';
+                    legendItem.innerHTML = `
+                        <div class="legend-color" style="background-color: ${color}"></div>
+                        <span>${dimensions}</span>
+                    `;
+                    legendElement.appendChild(legendItem);
+                });
+            }
+
+            // Draw sheet on canvas
+            function drawSheet(canvas, sheet, sheetWidth, sheetHeight, sheetIndex) {
+                const ctx = canvas.getContext('2d');
+                const scale = 300 / Math.max(sheetWidth, sheetHeight);
+                canvas.width = sheetWidth * scale;
+                canvas.height = sheetHeight * scale;
+
+                // Draw sheet background
+                ctx.fillStyle = '#fff';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.strokeStyle = '#000';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(0, 0, canvas.width, canvas.height);
+
+                // Draw pieces
+                sheet.pieces.forEach((piece, index) => {
+                    const x = piece.x * scale;
+                    const y = piece.y * scale;
+                    const width = piece.width * scale;
+                    const height = piece.height * scale;
+
+                    ctx.fillStyle = colors[index % colors.length];
+                    ctx.fillRect(x, y, width, height);
+                    ctx.strokeStyle = '#000';
+                    ctx.lineWidth = 1;
+                    ctx.strokeRect(x, y, width, height);
+
+                    // Draw piece dimensions
+                    ctx.fillStyle = '#000';
+                    ctx.font = '9px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    const displayWidth = piece.rotated ? piece.height : piece.width;
+                    const displayHeight = piece.rotated ? piece.width : piece.height;
+                    const text = `${displayWidth.toFixed(2)} × ${displayHeight.toFixed(2)}`;
+                    const textWidth = ctx.measureText(text).width;
+
+                    // Check if text fits, adjust if needed
+                    if (textWidth > width * 0.9 || height < 12) {
+                        ctx.font = '8px Arial';
+                    }
+
+                    if (piece.rotated) {
+                        ctx.save();
+                        ctx.translate(x + width / 2, y + height / 2);
+                        ctx.rotate(Math.PI / 2);
+                        ctx.fillText(text, 0, 0);
+                        ctx.restore();
+                    } else {
+                        ctx.fillText(text, x + width / 2, y + height / 2);
+                    }
+                });
+
+                // Draw sheet dimensions
+                ctx.fillStyle = '#000';
+                ctx.font = '14px Arial';
+                ctx.textAlign = 'left';
+                ctx.fillText(`${sheetWidth.toFixed(2)}m`, 5, canvas.height - 5);
+                ctx.textAlign = 'right';
+                ctx.fillText(`${sheetHeight.toFixed(2)}m`, canvas.width - 5, 15);
+            }
+
+            // Clear results
+            function clearResults() {
+                statsElement.innerHTML = '';
+                layoutTabsElement.innerHTML = '';
+                canvasContainerElement.innerHTML = '';
+                legendElement.innerHTML = '';
+                packingResult = null;
+            }
+
+            // Print layout
+            printLayoutButton.addEventListener('click', function() {
+                window.print();
+            });
+
+            // Export PDF
+            exportPdfButton.addEventListener('click', async function() {
+                if (!packingResult) return;
+
+                const { pdfjsLib } = window;
+                const pdfDoc = await pdfjsLib.createDocument();
+                
+                packingResult.sheets.forEach((sheet, index) => {
+                    const page = pdfDoc.addPage();
+                    const canvas = document.getElementById(`canvas-${index}`);
+                    
+                    const scale = 500 / Math.max(sheet.width, sheet.height);
+                    const imgData = canvas.toDataURL('image/png');
+                    
+                    page.drawImage(imgData, {
+                        x: 50,
+                        y: 50,
+                        width: sheet.width * scale,
+                        height: sheet.height * scale
+                    });
+                    
+                    page.drawText(`Tấm ${index + 1}`, {
+                        x: 50,
+                        y: 30,
+                        size: 16
+                    });
+                });
+
+                const pdfBytes = await pdfDoc.save();
+                const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'cutting_layout.pdf';
+                a.click();
+                URL.revokeObjectURL(url);
+            });
+
+            // Zoom fit
+            zoomFitButton.addEventListener('click', function() {
+                if (!packingResult) return;
+
+                canvasContainerElement.querySelectorAll('canvas').forEach(canvas => {
+                    const sheetWidth = parseFloat(sheetWidthInput.value);
+                    const sheetHeight = parseFloat(sheetHeightInput.value);
+                    const scale = Math.min(
+                        canvasContainerElement.offsetWidth / sheetWidth,
+                        300 / Math.max(sheetWidth, sheetHeight)
+                    );
+                    canvas.style.width = `${sheetWidth * scale}px`;
+                    canvas.style.height = `${sheetHeight * scale}px`;
+                });
+            });
+        });
+    </script>
+</body>
+</html>
