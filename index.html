@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/7166/7166938.png">
@@ -744,7 +744,20 @@
                 const sheetWidth = parseFloat(sheetWidthInput.value);
                 const sheetHeight = parseFloat(sheetHeightInput.value);
 
-                                if (isNaN(width) || width <= 0 || isNaN(height) || height <= 0) {                    showError('error_invalid_piece');                    return;                }                if (isNaN(quantity) || quantity <= 0) {                    showError('error_invalid_quantity');                    return;                }                if (width > sheetWidth || height > sheetHeight) {                    if (width > sheetHeight || height > sheetWidth) {                        showError('error_piece_too_large');                        return;                    }                }
+                if (isNaN(width) || width <= 0 || isNaN(height) || height <= 0) {
+                    showError('error_invalid_piece');
+                return;
+                }
+                    if (isNaN(quantity) || quantity <= 0) {
+                        showError('error_invalid_quantity');
+                        return;
+                    }
+                if (width > sheetWidth || height > sheetHeight) {
+                    if (width > sheetHeight || height > sheetWidth) {
+                        showError('error_piece_too_large');
+                        return;
+                    }
+                }
 
                 for (let i = 0; i < quantity; i++) {
                     pieceList.push({
@@ -843,11 +856,28 @@
             });
 
             // Show error message
-                            function showError(messageKey) {                errorMessage.textContent = translations[currentLang][messageKey] || messageKey;                errorMessage.style.display = 'block';                setTimeout(() => {                    errorMessage.style.display = 'none';                }, 3000);            }
+            function showError(messageKey) {
+                errorMessage.textContent = translations[currentLang][messageKey] || messageKey;
+                errorMessage.style.display = 'block';
+                setTimeout(() => {
+                    errorMessage.style.display = 'none';
+                }, 3000);
+            }
 
             // Calculate button click
             calculateButton.addEventListener('click', function() {
-                                if (pieceList.length === 0) {                    showError('error_no_pieces');                    return;                }                const sheetWidth = parseFloat(sheetWidthInput.value);                const sheetHeight = parseFloat(sheetHeightInput.value);                const cutWidth = parseFloat(cutWidthInput.value) / 1000;                const algorithm = algorithmSelect.value;                if (isNaN(sheetWidth) || sheetWidth <= 0 || isNaN(sheetHeight) || sheetHeight <= 0) {                    showError('error_invalid_sheet');                    return;                }
+                if (pieceList.length === 0) {
+                    showError('error_no_pieces');
+                    return; 
+                }                
+                const sheetWidth = parseFloat(sheetWidthInput.value);
+                const sheetHeight = parseFloat(sheetHeightInput.value);
+                const cutWidth = parseFloat(cutWidthInput.value) / 1000;
+                const algorithm = algorithmSelect.value;
+                if (isNaN(sheetWidth) || sheetWidth <= 0 || isNaN(sheetHeight) || sheetHeight <= 0) {
+                    showError('error_invalid_sheet');
+                    return;
+                }
 
                 const piecesWithCuts = pieceList.map(piece => ({
                     id: piece.id,
