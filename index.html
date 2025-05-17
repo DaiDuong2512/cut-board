@@ -441,6 +441,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            min-width: 300px;
         }
 
         .layout-title {
@@ -466,6 +467,7 @@
             .layout-container {
                 width: 100%;
                 max-width: 31.25rem;
+                min-width: unset;
             }
 
             canvas {
@@ -483,6 +485,7 @@
             .layout-container {
                 width: calc(50% - 0.5rem);
                 max-width: 25rem;
+                min-width: 18.75px;
             }
         }
 
@@ -495,6 +498,7 @@
             .layout-container {
                 width: calc(33.33% - 0.67rem);
                 max-width: 21.875rem;
+                min-width: 18.75px;
             }
         }
     </style>
@@ -1447,8 +1451,12 @@
             // Draw sheet on canvas
             function drawSheet(canvas, sheet, sheetWidth, sheetHeight, sheetIndex) {
                 const ctx = canvas.getContext('2d');
-                const displayScale = 300 / Math.max(sheetWidth, sheetHeight);
-                const qualityScale = 5; // Increase quality scale for web display
+                const containerWidth = canvas.parentElement.offsetWidth - 20; // Trừ padding
+                const displayScale = Math.min(
+                    containerWidth / sheetWidth,
+                    300 / Math.max(sheetWidth, sheetHeight)
+                );
+                const qualityScale = 5;
 
                 // Set canvas size with higher resolution
                 canvas.width = sheetWidth * displayScale * qualityScale;
@@ -1483,11 +1491,10 @@
                     const text = `${displayWidth.toFixed(2)} × ${displayHeight.toFixed(2)}`;
                     
                     // Calculate maximum font size that fits
-                    let fontSize = Math.min(width, height) / 5; // Start with 1/5 of the smaller dimension
+                    let fontSize = Math.min(width, height) / 5;
                     ctx.font = `${fontSize}px Arial`;
                     let textWidth = ctx.measureText(text).width;
                     
-                    // Reduce font size until text fits
                     while (textWidth > width * 0.9 && fontSize > 8) {
                         fontSize -= 1;
                         ctx.font = `${fontSize}px Arial`;
