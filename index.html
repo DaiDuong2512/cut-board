@@ -270,10 +270,10 @@
         }
 
         .legend-color {
-            width: 16px;
-            height: 16px;
+            width: 1rem;
+            height: 1rem;
             margin-right: 0.25rem;
-            border: 1px solid #333;
+            border: 0.0625rem solid #333;
         }
 
         .alert {
@@ -320,7 +320,7 @@
         .export-buttons button {
             padding: 0.4rem 0.6rem;
             font-size: 0.85rem;
-            min-width: 80px;
+            min-width: 5rem;
         }
 
         .language-switcher {
@@ -334,8 +334,8 @@
             background: var(--primary-color);
             border: none;
             border-radius: 50%;
-            width: 40px;
-            height: 40px;
+            width: 2.5rem;
+            height: 2.5rem;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -356,7 +356,7 @@
             border: 1px solid var(--border-color);
             border-radius: 4px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            min-width: 100px;
+            min-width: 6.25rem;
         }
 
         .language-menu.active {
@@ -403,6 +403,98 @@
 
             canvas {
                 display: block !important;
+            }
+        }
+
+        .layout-scroll-container {
+            width: 100%;
+            overflow-x: auto;
+            margin-top: 0.5rem;
+            -webkit-overflow-scrolling: touch;
+            max-height: 80vh;
+            overflow-y: auto;
+            padding: 0.5rem;
+            border: 0.0625rem solid var(--border-color);
+            border-radius: 0.5rem;
+            background: #f5f5f5;
+            display: flex;
+            justify-content: center;
+        }
+
+        .layouts-container {
+            display: flex;
+            gap: 1rem;
+            padding: 0.5rem;
+            min-width: min-content;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 100%;
+        }
+
+        .layout-container {
+            flex: 0 0 auto;
+            background: white;
+            border: 0.0625rem solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .layout-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--primary-color);
+            text-align: center;
+            width: 100%;
+            font-size: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .layout-scroll-container {
+                max-height: 60vh;
+            }
+            
+            .layouts-container {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: center;
+            }
+
+            .layout-container {
+                width: 100%;
+                max-width: 31.25rem;
+            }
+
+            canvas {
+                width: 100% !important;
+                height: auto !important;
+            }
+        }
+
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .layouts-container {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .layout-container {
+                width: calc(50% - 0.5rem);
+                max-width: 25rem;
+            }
+        }
+
+        @media (min-width: 1025px) {
+            .layouts-container {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .layout-container {
+                width: calc(33.33% - 0.67rem);
+                max-width: 21.875rem;
             }
         }
     </style>
@@ -576,7 +668,7 @@
                 stats_used_area: "Diện tích sử dụng",
                 stats_waste_area: "Diện tích thừa",
                 stats_efficiency: "Hiệu suất",
-                sheet_label: "Tấm"
+                sheet_label: "Layout"
             },
             en: {
                 title: "Plywood Cutting Optimizer",
@@ -608,7 +700,7 @@
                 stats_used_area: "Used area",
                 stats_waste_area: "Waste area",
                 stats_efficiency: "Efficiency",
-                sheet_label: "Sheet"
+                sheet_label: "Layout"
             },
             ko: {
                 title: "패널 절단 최적화",
@@ -640,7 +732,7 @@
                 stats_used_area: "사용 면적",
                 stats_waste_area: "폐기 면적",
                 stats_efficiency: "효율성",
-                sheet_label: "패널"
+                sheet_label: "Layout"
             }
         };
 
@@ -1074,8 +1166,8 @@
                         for (let i = 0; i < remainingPieces.length; i++) {
                             const piece = remainingPieces[i];
                             
+                            // Try original orientation
                             const placement = findBestMaxRectsPlacement(piece, sheet.freeRectangles);
-                            
                             if (placement) {
                                 sheet.pieces.push({
                                     id: piece.id,
@@ -1085,7 +1177,8 @@
                                     width: piece.originalWidth,
                                     height: piece.originalHeight,
                                     fullWidth: piece.width,
-                                    fullHeight: piece.height
+                                    fullHeight: piece.height,
+                                    cutWidth: piece.width - piece.originalWidth
                                 });
                                 
                                 updateMaxRectsFreeRectangles(sheet.freeRectangles, placement);
@@ -1095,6 +1188,7 @@
                                 break;
                             }
                             
+                            // Try rotated orientation
                             const rotatedPiece = {
                                 id: piece.id,
                                 name: piece.name,
@@ -1105,7 +1199,6 @@
                             };
                             
                             const rotatedPlacement = findBestMaxRectsPlacement(rotatedPiece, sheet.freeRectangles);
-                            
                             if (rotatedPlacement) {
                                 sheet.pieces.push({
                                     id: piece.id,
@@ -1116,7 +1209,8 @@
                                     height: rotatedPiece.originalHeight,
                                     fullWidth: rotatedPiece.width,
                                     fullHeight: rotatedPiece.height,
-                                    rotated: true
+                                    rotated: true,
+                                    cutWidth: rotatedPiece.width - rotatedPiece.originalWidth
                                 });
                                 
                                 updateMaxRectsFreeRectangles(sheet.freeRectangles, rotatedPlacement);
@@ -1135,16 +1229,15 @@
             // Find best MaxRects placement
             function findBestMaxRectsPlacement(piece, freeRects) {
                 let bestPlacement = null;
-                let bestScore = Infinity;
+                let bestScore = -Infinity;
 
                 for (const rect of freeRects) {
+                    // Check if piece fits with cut width
                     if (rect.width >= piece.width && rect.height >= piece.height) {
-                        const score = Math.min(
-                            rect.width - piece.width,
-                            rect.height - piece.height
-                        );
-
-                        if (score < bestScore) {
+                        // Score based on area utilization and position
+                        const score = (rect.width * rect.height) - (piece.width * piece.height);
+                        
+                        if (score > bestScore) {
                             bestScore = score;
                             bestPlacement = {
                                 x: rect.x,
@@ -1159,64 +1252,84 @@
                 return bestPlacement;
             }
 
+            // Clean up free rectangles
+            function cleanUpFreeRectangles(...rects) {
+                const result = [];
+                for (const rect of rects) {
+                    let isContained = false;
+                    for (const existingRect of result) {
+                        if (isRectContained(rect, existingRect)) {
+                            isContained = true;
+                            break;
+                        }
+                    }
+                    if (!isContained) {
+                        result.push(rect);
+                    }
+                }
+                return result;
+            }
+
             // Update MaxRects free rectangles
             function updateMaxRectsFreeRectangles(freeRects, placement) {
                 const newRects = [];
+                
                 for (let i = freeRects.length - 1; i >= 0; i--) {
                     const rect = freeRects[i];
-                    if (isOverlapping(rect, placement)) {
-                        freeRects.splice(i, 1);
-                        
-                        if (rect.y < placement.y) {
-                            newRects.push({
-                                x: rect.x,
-                                y: rect.y,
-                                width: rect.width,
-                                height: placement.y - rect.y
-                            });
-                        }
-                        
-                        if (rect.y + rect.height > placement.y + placement.height) {
-                            newRects.push({
-                                x: rect.x,
-                                y: placement.y + placement.height,
-                                width: rect.width,
-                                height: (rect.y + rect.height) - (placement.y + placement.height)
-                            });
-                        }
-                        
-                        if (rect.x < placement.x) {
-                            newRects.push({
-                                x: rect.x,
-                                y: rect.y,
-                                width: placement.x - rect.x,
-                                height: rect.height
-                            });
-                        }
-                        
-                        if (rect.x + rect.width > placement.x + placement.width) {
-                            newRects.push({
-                                x: placement.x + placement.width,
-                                y: rect.y,
-                                width: (rect.x + rect.width) - (placement.x + placement.width),
-                                height: rect.height
-                            });
-                        }
+                    
+                    if (!isOverlapping(rect, placement)) {
+                        continue;
+                    }
+                    
+                    freeRects.splice(i, 1);
+                    
+                    // Generate new rectangles from the remaining space
+                    // Consider cut width when creating new rectangles
+                    if (rect.x < placement.x) {
+                        newRects.push({
+                            x: rect.x,
+                            y: rect.y,
+                            width: placement.x - rect.x,
+                            height: rect.height
+                        });
+                    }
+                    
+                    if (rect.x + rect.width > placement.x + placement.width) {
+                        newRects.push({
+                            x: placement.x + placement.width,
+                            y: rect.y,
+                            width: (rect.x + rect.width) - (placement.x + placement.width),
+                            height: rect.height
+                        });
+                    }
+                    
+                    if (rect.y < placement.y) {
+                        newRects.push({
+                            x: rect.x,
+                            y: rect.y,
+                            width: rect.width,
+                            height: placement.y - rect.y
+                        });
+                    }
+                    
+                    if (rect.y + rect.height > placement.y + placement.height) {
+                        newRects.push({
+                            x: rect.x,
+                            y: placement.y + placement.height,
+                            width: rect.width,
+                            height: (rect.y + rect.height) - (placement.y + placement.height)
+                        });
                     }
                 }
                 
-                freeRects.push(cleanUpFreeRectangles(...newRects));
+                // Add new rectangles after cleanup
+                const cleanedRects = cleanUpFreeRectangles(...newRects);
+                freeRects.push(...cleanedRects);
                 
+                // Remove any rectangles that are too small (including cut width)
                 for (let i = freeRects.length - 1; i >= 0; i--) {
-                    for (let j = i - 1; j >= 0; j--) {
-                        if (isRectContained(freeRects[i], freeRects[j])) {
-                            freeRects.splice(i, 1);
-                            break;
-                        } else if (isRectContained(freeRects[j], freeRects[i])) {
-                            freeRects.splice(j, 1);
-                            i--;
-                            break;
-                        }
+                    if (freeRects[i].width < 0.01 || freeRects[i].height < 0.01) {
+                        freeRects.splice(i, 1);
                     }
                 }
             }
@@ -1270,40 +1383,42 @@
                         <h3 style="color: black;">${translations[currentLang].stats_waste_area}</h3>
                         <div class="value">${(result.totalArea - result.totalUsedArea).toFixed(2)} m²</div>
                     </div>
-                        <div class="stat-card">
+                    <div class="stat-card">
                         <h3 style="color: black;">${translations[currentLang].stats_efficiency}</h3>
                         <div class="value">${result.efficiency.toFixed(1)}%</div>
                     </div>
                 `;
 
-                // Create tabs and canvases
+                // Create layout container
                 layoutTabsElement.innerHTML = '';
                 canvasContainerElement.innerHTML = '';
+                
+                // Create horizontal scroll container
+                const scrollContainer = document.createElement('div');
+                scrollContainer.className = 'layout-scroll-container';
+                canvasContainerElement.appendChild(scrollContainer);
+
+                // Create layouts container
+                const layoutsContainer = document.createElement('div');
+                layoutsContainer.className = 'layouts-container';
+                scrollContainer.appendChild(layoutsContainer);
+
+                // Add all layouts
                 result.sheets.forEach((sheet, index) => {
-                    const tabButton = document.createElement('button');
-                    tabButton.className = `tab-button ${index === 0 ? 'active' : ''}`;
-                        tabButton.textContent = `${translations[currentLang].sheet_label} ${index + 1}`;
-                        tabButton.dataset.index = index;
-                    layoutTabsElement.appendChild(tabButton);
+                    const layoutContainer = document.createElement('div');
+                    layoutContainer.className = 'layout-container';
+                    
+                    const title = document.createElement('div');
+                    title.className = 'layout-title';
+                    title.textContent = `${translations[currentLang].sheet_label} ${index + 1}`;
+                    layoutContainer.appendChild(title);
 
                     const canvas = document.createElement('canvas');
                     canvas.id = `canvas-${index}`;
-                    canvas.style.display = index === 0 ? 'block' : 'none';
-                    canvasContainerElement.appendChild(canvas);
+                    layoutContainer.appendChild(canvas);
+                    
+                    layoutsContainer.appendChild(layoutContainer);
                     drawSheet(canvas, sheet, sheetWidth, sheetHeight, index);
-                });
-
-                // Tab switching
-                layoutTabsElement.querySelectorAll('.tab-button').forEach(button => {
-                    button.addEventListener('click', function() {
-                        layoutTabsElement.querySelector('.active').classList.remove('active');
-                        this.classList.add('active');
-
-                        canvasContainerElement.querySelectorAll('canvas').forEach(canvas => {
-                            canvas.style.display = 'none';
-                        });
-                        document.getElementById(`canvas-${this.dataset.index}`).style.display = 'block';
-                    });
                 });
 
                 // Create legend
@@ -1332,44 +1447,57 @@
             // Draw sheet on canvas
             function drawSheet(canvas, sheet, sheetWidth, sheetHeight, sheetIndex) {
                 const ctx = canvas.getContext('2d');
-                const scale = 300 / Math.max(sheetWidth, sheetHeight);
-                canvas.width = sheetWidth * scale;
-                canvas.height = sheetHeight * scale;
+                const displayScale = 300 / Math.max(sheetWidth, sheetHeight);
+                const qualityScale = 5; // Increase quality scale for web display
+
+                // Set canvas size with higher resolution
+                canvas.width = sheetWidth * displayScale * qualityScale;
+                canvas.height = sheetHeight * displayScale * qualityScale;
+                
+                // Scale context to match display size
+                ctx.scale(qualityScale, qualityScale);
 
                 // Draw sheet background
                 ctx.fillStyle = '#fff';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillRect(0, 0, canvas.width / qualityScale, canvas.height / qualityScale);
                 ctx.strokeStyle = '#000';
-                ctx.lineWidth = 2;
-                ctx.strokeRect(0, 0, canvas.width, canvas.height);
+                ctx.lineWidth = 2 / qualityScale;
+                ctx.strokeRect(0, 0, canvas.width / qualityScale, canvas.height / qualityScale);
 
                 // Draw pieces
                 sheet.pieces.forEach((piece, index) => {
-                    const x = piece.x * scale;
-                    const y = piece.y * scale;
-                    const width = piece.width * scale;
-                    const height = piece.height * scale;
+                    const x = piece.x * displayScale;
+                    const y = piece.y * displayScale;
+                    const width = piece.width * displayScale;
+                    const height = piece.height * displayScale;
 
                     ctx.fillStyle = colors[index % colors.length];
                     ctx.fillRect(x, y, width, height);
                     ctx.strokeStyle = '#000';
-                    ctx.lineWidth = 1;
+                    ctx.lineWidth = 1 / qualityScale;
                     ctx.strokeRect(x, y, width, height);
 
-                    // Draw piece dimensions
-                    ctx.fillStyle = '#000';
-                    ctx.font = '9px Arial';
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
+                    // Draw piece dimensions with auto-scaling text
                     const displayWidth = piece.rotated ? piece.height : piece.width;
                     const displayHeight = piece.rotated ? piece.width : piece.height;
                     const text = `${displayWidth.toFixed(2)} × ${displayHeight.toFixed(2)}`;
-                    const textWidth = ctx.measureText(text).width;
-
-                    // Check if text fits, adjust if needed
-                    if (textWidth > width * 0.9 || height < 12) {
-                        ctx.font = '8px Arial';
+                    
+                    // Calculate maximum font size that fits
+                    let fontSize = Math.min(width, height) / 5; // Start with 1/5 of the smaller dimension
+                    ctx.font = `${fontSize}px Arial`;
+                    let textWidth = ctx.measureText(text).width;
+                    
+                    // Reduce font size until text fits
+                    while (textWidth > width * 0.9 && fontSize > 8) {
+                        fontSize -= 1;
+                        ctx.font = `${fontSize}px Arial`;
+                        textWidth = ctx.measureText(text).width;
                     }
+
+                    // Draw text
+                    ctx.fillStyle = '#000';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
 
                     if (piece.rotated) {
                         ctx.save();
@@ -1384,11 +1512,15 @@
 
                 // Draw sheet dimensions
                 ctx.fillStyle = '#000';
-                ctx.font = '14px Arial';
+                ctx.font = `${14 / qualityScale}px Arial`;
                 ctx.textAlign = 'left';
-                ctx.fillText(`${sheetWidth.toFixed(2)}m`, 5, canvas.height - 5);
+                ctx.fillText(`${sheetWidth.toFixed(2)}m`, 5 / qualityScale, canvas.height / qualityScale - 5 / qualityScale);
                 ctx.textAlign = 'right';
-                ctx.fillText(`${sheetHeight.toFixed(2)}m`, canvas.width - 5, 15);
+                ctx.fillText(`${sheetHeight.toFixed(2)}m`, canvas.width / qualityScale - 5 / qualityScale, 15 / qualityScale);
+
+                // Set canvas display size
+                canvas.style.width = `${sheetWidth * displayScale}px`;
+                canvas.style.height = `${sheetHeight * displayScale}px`;
             }
 
             // Clear results
@@ -1411,41 +1543,116 @@
 
                 const { jsPDF } = window.jspdf;
                 const pdfDoc = new jsPDF({
-                    orientation: sheetWidthInput.value > sheetHeightInput.value ? 'landscape' : 'portrait',
+                    orientation: 'landscape',
                     unit: 'mm',
                     format: 'a4'
                 });
 
-                packingResult.sheets.forEach((sheet, index) => {
-                    if (index > 0) {
+                const pageWidth = pdfDoc.internal.pageSize.getWidth();
+                const pageHeight = pdfDoc.internal.pageSize.getHeight();
+                const margin = 10;
+                const maxWidth = (pageWidth - 4 * margin) / 3; // Divide by 3 for 3 layouts
+                const maxHeight = pageHeight - 2 * margin - 20; // Reserve space for title
+                const qualityScale = 2; // Increase quality scale to 10x
+
+                // Process sheets in groups of 3
+                for (let i = 0; i < packingResult.sheets.length; i += 3) {
+                    if (i > 0) {
                         pdfDoc.addPage();
                     }
 
-                    const canvas = document.getElementById(`canvas-${index}`);
-                    const imgData = canvas.toDataURL('image/png');
-                    const sheetWidth = parseFloat(sheetWidthInput.value);
-                    const sheetHeight = parseFloat(sheetHeightInput.value);
+                    // First layout
+                    const canvas1 = document.getElementById(`canvas-${i}`);
+                    const tempCanvas1 = document.createElement('canvas');
+                    const tempCtx1 = tempCanvas1.getContext('2d', { alpha: false });
+                    tempCanvas1.width = canvas1.width * qualityScale;
+                    tempCanvas1.height = canvas1.height * qualityScale;
+                    tempCtx1.scale(qualityScale, qualityScale);
+                    tempCtx1.imageSmoothingEnabled = true;
+                    tempCtx1.imageSmoothingQuality = 'high';
+                    tempCtx1.drawImage(canvas1, 0, 0);
+                    
+                    const imgData1 = tempCanvas1.toDataURL('image/png', 1.0);
+                    const sheetWidth1 = parseFloat(sheetWidthInput.value);
+                    const sheetHeight1 = parseFloat(sheetHeightInput.value);
+                    
+                    const scale1 = Math.min(
+                        maxWidth / sheetWidth1,
+                        maxHeight / sheetHeight1
+                    );
+                    const imgWidth1 = sheetWidth1 * scale1;
+                    const imgHeight1 = sheetHeight1 * scale1;
 
-                    // Calculate dimensions to fit A4 page (210mm x 297mm)
-                    const pageWidth = pdfDoc.internal.pageSize.getWidth();
-                    const pageHeight = pdfDoc.internal.pageSize.getHeight();
-                    const margin = 10;
-                    const maxWidth = pageWidth - 2 * margin;
-                    const maxHeight = pageHeight - 2 * margin - 20; // Reserve space for title
-                    const scale = Math.min(maxWidth / sheetWidth, maxHeight / sheetHeight);
-                    const imgWidth = sheetWidth * scale;
-                    const imgHeight = sheetHeight * scale;
+                    // Add title for first layout
+                    pdfDoc.setFontSize(14);
+                    pdfDoc.text(`${translations[currentLang].sheet_label} ${i + 1}`, margin, margin + 10);
 
-                    // Add title
-                    pdfDoc.setFontSize(16);
-                    pdfDoc.text(`${translations[currentLang].sheet_label} ${index + 1}`, margin, margin + 10);
+                    // Add first canvas image
+                    pdfDoc.addImage(imgData1, 'PNG', margin, margin + 15, imgWidth1, imgHeight1);
 
-                    // Add canvas image
-                    pdfDoc.addImage(imgData, 'PNG', margin, margin + 20, imgWidth, imgHeight);
-                });
+                    // Second layout (if exists)
+                    if (i + 1 < packingResult.sheets.length) {
+                        const canvas2 = document.getElementById(`canvas-${i + 1}`);
+                        const tempCanvas2 = document.createElement('canvas');
+                        const tempCtx2 = tempCanvas2.getContext('2d', { alpha: false });
+                        tempCanvas2.width = canvas2.width * qualityScale;
+                        tempCanvas2.height = canvas2.height * qualityScale;
+                        tempCtx2.scale(qualityScale, qualityScale);
+                        tempCtx2.imageSmoothingEnabled = true;
+                        tempCtx2.imageSmoothingQuality = 'high';
+                        tempCtx2.drawImage(canvas2, 0, 0);
+                        
+                        const imgData2 = tempCanvas2.toDataURL('image/png', 1.0);
+                        const sheetWidth2 = parseFloat(sheetWidthInput.value);
+                        const sheetHeight2 = parseFloat(sheetHeightInput.value);
+                        
+                        const scale2 = Math.min(
+                            maxWidth / sheetWidth2,
+                            maxHeight / sheetHeight2
+                        );
+                        const imgWidth2 = sheetWidth2 * scale2;
+                        const imgHeight2 = sheetHeight2 * scale2;
 
-                    // Save PDF                
-                    pdfDoc.save(`${translations[currentLang].title.toLowerCase().replace(/\s+/g, '_')}.pdf`);
+                        // Add title for second layout
+                        pdfDoc.text(`${translations[currentLang].sheet_label} ${i + 2}`, pageWidth/3 + margin, margin + 10);
+
+                        // Add second canvas image
+                        pdfDoc.addImage(imgData2, 'PNG', pageWidth/3 + margin, margin + 15, imgWidth2, imgHeight2);
+                    }
+
+                    // Third layout (if exists)
+                    if (i + 2 < packingResult.sheets.length) {
+                        const canvas3 = document.getElementById(`canvas-${i + 2}`);
+                        const tempCanvas3 = document.createElement('canvas');
+                        const tempCtx3 = tempCanvas3.getContext('2d', { alpha: false });
+                        tempCanvas3.width = canvas3.width * qualityScale;
+                        tempCanvas3.height = canvas3.height * qualityScale;
+                        tempCtx3.scale(qualityScale, qualityScale);
+                        tempCtx3.imageSmoothingEnabled = true;
+                        tempCtx3.imageSmoothingQuality = 'high';
+                        tempCtx3.drawImage(canvas3, 0, 0);
+                        
+                        const imgData3 = tempCanvas3.toDataURL('image/png', 1.0);
+                        const sheetWidth3 = parseFloat(sheetWidthInput.value);
+                        const sheetHeight3 = parseFloat(sheetHeightInput.value);
+                        
+                        const scale3 = Math.min(
+                            maxWidth / sheetWidth3,
+                            maxHeight / sheetHeight3
+                        );
+                        const imgWidth3 = sheetWidth3 * scale3;
+                        const imgHeight3 = sheetHeight3 * scale3;
+
+                        // Add title for third layout
+                        pdfDoc.text(`${translations[currentLang].sheet_label} ${i + 3}`, (pageWidth * 2/3) + margin, margin + 10);
+
+                        // Add third canvas image
+                        pdfDoc.addImage(imgData3, 'PNG', (pageWidth * 2/3) + margin, margin + 15, imgWidth3, imgHeight3);
+                    }
+                }
+
+                // Save PDF                
+                pdfDoc.save(`${translations[currentLang].title.toLowerCase().replace(/\s+/g, '_')}.pdf`);
             });
 
             // Zoom fit
