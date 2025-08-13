@@ -1,0 +1,47 @@
+/* Error and Success Messages */
+.error-message {
+    display: none;
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    padding: 12px 20px;
+    background-color: #dc2626;
+    color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    font-size: 14px;
+    font-weight: 500;
+    max-width: 400px;
+    word-wrap: break-word;
+    transform: translateX(100%);
+    transition: all 0.3s ease-in-out;
+}
+
+.error-message.show {
+    transform: translateX(0);
+}
+
+.error-message:before {
+    content: "⚠️";
+    margin-right: 8px;
+}
+
+/* Success variant */
+.error-message[style*="background-color: rgb(16, 185, 129)"] {
+    background-color: #10b981 !important;
+}
+
+.error-message[style*="background-color: rgb(16, 185, 129)"]:before {
+    content: "✅";
+}
+
+@media (max-width: 768px) {
+    .error-message {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        max-width: none;
+        font-size: 13px;
+    }
+}

@@ -1,0 +1,239 @@
+/* Performance Optimizations for Cut Board App */
+
+/* GPU acceleration for smooth animations */
+.layout-item,
+.progressive-loading-container,
+.layout-batch {
+    will-change: transform, opacity;
+    transform: translateZ(0); /* Force GPU acceleration */
+}
+
+/* Optimize animations */
+.loader-spinner {
+    animation: spin 1s linear infinite;
+    will-change: transform;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Optimize SVG rendering */
+.svg-container svg {
+    shape-rendering: optimizeSpeed;
+    text-rendering: optimizeSpeed;
+    image-rendering: optimizeSpeed;
+}
+
+/* Virtual scrolling optimization */
+.layouts-grid {
+    contain: layout style paint;
+    position: relative;
+}
+
+.layout-item {
+    contain: layout style paint;
+    position: relative;
+    backface-visibility: hidden;
+    perspective: 1000px;
+}
+
+/* Memory efficient transitions */
+.layout-batch {
+    transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+    transform: translate3d(0, 20px, 0);
+    opacity: 0;
+}
+
+.layout-batch.loaded {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+}
+
+/* Optimize pagination controls */
+.pagination-controls {
+    contain: layout style;
+}
+
+.pagination-btn {
+    contain: layout;
+    transform: translateZ(0);
+}
+
+/* Progressive loading styles */
+.progressive-loading-overlay {
+    -webkit-backdrop-filter: blur(5px);
+    backdrop-filter: blur(5px);
+    will-change: opacity;
+}
+
+/* Memory usage indicator */
+.memory-info {
+    font-family: 'Courier New', monospace;
+    background: rgba(0, 0, 0, 0.05);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+}
+
+/* Optimize piece list rendering */
+.dimension-group,
+.name-group,
+.individual-piece {
+    contain: layout style;
+}
+
+/* Virtual scrolling for large piece lists */
+.pieces-list {
+    contain: layout;
+    overflow-anchor: none;
+}
+
+/* Optimize stats display */
+.stats-grid {
+    contain: layout style;
+}
+
+.stat-item {
+    contain: layout;
+    backface-visibility: hidden;
+}
+
+/* Loading states */
+.loading-placeholder {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: loading-shimmer 2s infinite;
+}
+
+@keyframes loading-shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* Reduce paint complexity */
+.piece-rectangle,
+.legend-color {
+    contain: strict;
+}
+
+/* Optimize text rendering */
+.piece-name,
+.piece-dims,
+.dimension-title {
+    text-rendering: optimizeSpeed;
+}
+
+/* Layout containment for performance */
+.main-content,
+.sidebar,
+.layout-container {
+    contain: layout style;
+}
+
+/* Optimize form rendering */
+.form-section,
+.input-group {
+    contain: layout;
+}
+
+/* Lazy loading for SVG elements */
+.svg-container[data-lazy="true"] {
+    min-height: 200px;
+    background: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Performance hints for browsers */
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    contain: layout style;
+    overflow-anchor: none;
+}
+
+/* Optimize dropdown animations */
+.language-dropdown,
+.group-content,
+.name-content {
+    contain: layout;
+    will-change: max-height;
+}
+
+/* Reduce repaint on hover states */
+button:hover,
+.btn:hover {
+    will-change: background-color, border-color, transform;
+}
+
+/* Optimize modal/overlay rendering */
+.modal-overlay,
+#progressive-loading-overlay {
+    contain: strict;
+    isolation: isolate;
+}
+
+/* Critical rendering path optimization */
+.above-fold {
+    contain: layout style paint;
+}
+
+.below-fold {
+    content-visibility: auto;
+    contain-intrinsic-size: 1px 500px;
+}
+
+/* Batch DOM updates */
+.batch-update {
+    display: none;
+}
+
+.batch-update.ready {
+    display: block;
+}
+
+/* Memory efficient gradients */
+.gradient-bg {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background-attachment: fixed;
+}
+
+/* Optimize table rendering for large datasets */
+.piece-table {
+    table-layout: fixed;
+    contain: layout;
+}
+
+/* Prevent layout thrashing */
+.dynamic-content {
+    min-height: 1px;
+    contain: layout style;
+}
+
+/* Optimize error messages */
+.error-message,
+.notification {
+    contain: layout style;
+    position: fixed;
+    z-index: 9999;
+}
+
+/* Performance monitoring styles */
+.perf-monitor {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 8px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 12px;
+    z-index: 10000;
+    contain: strict;
+}

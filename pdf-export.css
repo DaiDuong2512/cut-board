@@ -1,0 +1,86 @@
+/* PDF Export Specific Styles */
+.sheet-layout {
+    /* Ensure proper background for PDF export */
+    background: white;
+    border-radius: 8px;
+    padding: 10px;
+    margin: 10px 0;
+}
+
+.sheet-svg {
+    /* Ensure SVG renders properly in html2canvas */
+    background: white;
+    border: 2px solid #dee2e6;
+    border-radius: 4px;
+}
+
+/* Better text rendering for all SVG text */
+.sheet-svg text {
+    font-weight: 600;
+    text-rendering: optimizeQuality;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* High quality rendering for PDF export */
+@media print, screen and (-webkit-min-device-pixel-ratio: 2) {
+    .sheet-svg text {
+        text-rendering: geometricPrecision;
+        font-weight: bold;
+        font-size: 14px; /* Minimum font size for better readability */
+    }
+}
+
+/* Ensure sheet layouts are visible during PDF generation */
+.pdf-export-mode .sheet-layout {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: relative !important;
+}
+
+.pdf-export-mode .sheet-svg {
+    width: 100% !important;
+    height: auto !important;
+    max-width: none !important;
+}
+
+/* PDF Temp Container Styles */
+.pdf-export-mode .pdf-temp-container {
+    font-family: Arial, Helvetica, sans-serif !important;
+    font-smoothing: antialiased;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    visibility: visible !important;
+    opacity: 1 !important;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+}
+
+.pdf-temp-container svg {
+    font-family: Arial, Helvetica, sans-serif !important;
+    shape-rendering: crispEdges;
+    text-rendering: geometricPrecision;
+}
+
+.pdf-temp-container svg text {
+    font-family: Arial, Helvetica, sans-serif !important;
+    font-weight: bold !important;
+    text-rendering: optimizeSpeed;
+}
+
+.pdf-temp-container svg rect {
+    shape-rendering: crispEdges;
+}
+
+/* Hide scroll bars during export */
+.pdf-export-mode {
+    overflow: hidden !important;
+}
+
+/* Ensure consistent font loading */
+@media screen {
+    .pdf-temp-container {
+        font-display: block;
+    }
+}
